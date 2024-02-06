@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Start of Splash -->
+    <style name="fresh_fruit">
+        <item name="android:textSize">39sp</item>
+        <item name="android:textColor">#B3FDAC01</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">4</item>
+        <item name="android:shadowRadius">4</item>
+    </style>
+    <style name="sickness_go">
+        <item name="android:textSize">39sp</item>
+        <item name="android:textColor">#272222</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">4</item>
+        <item name="android:shadowRadius">4</item>
+    </style>
+    <!-- End of Splash -->
+
+    <!-- Start of Guideline -->
+    <style name="guideline_heading">
+        <item name="android:textSize">28sp</item>
+        <item name="android:textColor">#F8B11B</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="skip">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">#000000</item>
+    </style>
+    <style name="guideline_text1">
+        <item name="android:textSize">22sp</item>
+        <item name="android:textColor">#040404</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="guideline_text2">
+        <item name="android:textSize">11sp</item>
+        <item name="android:textColor">#8F000000</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="guideline_button1">
+        <item name="android:textSize">22sp</item>
+    </style>
+    <!-- End of Guideline -->
+    <!-- Start of Menu -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">#F8B11B</item>
+        <item name="colorPrimaryDark">#8F000000</item>
+        <item name="colorAccent">#8F000000</item>
+    </style>
+
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
+        <item name="android:textColorPrimary">#8F000000</item>
+        <item name="android:textColorSecondary">#8F000000</item>
+    </style>
+
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+    <!-- End of Menu -->
+
+    <style name="Menu_Appearance">
+        <item name="android:textSize">20sp</item>
+    </style>
+</resources>

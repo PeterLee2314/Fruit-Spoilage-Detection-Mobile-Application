@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg"
+    tools:context=".GuidelineActivity2">
+
+    <ImageView
+        android:id="@+id/imageView4"
+        android:layout_width="234dp"
+        android:layout_height="52dp"
+        android:layout_marginTop="49dp"
+        android:layout_marginEnd="89dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/icon_transparent" />
+
+    <TextView
+        android:id="@+id/guideline_heading"
+        android:layout_width="273dp"
+        android:layout_height="73dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginEnd="68dp"
+        android:gravity="center|center_horizontal|top"
+        android:text="@string/guideline_heading"
+        android:textAppearance="@style/guideline_heading"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageView4" />
+
+    <Button
+        android:id="@+id/goPreviousButton"
+        android:layout_width="41dp"
+        android:layout_height="45dp"
+        android:layout_marginTop="27dp"
+        android:layout_marginBottom="21dp"
+        android:backgroundTint="#F8B11B"
+        android:drawableLeft="@drawable/arrow_left_icon"
+        android:drawablePadding="2dp"
+        android:gravity="left|center"
+        android:padding="10dp"
+
+        app:layout_constraintBottom_toTopOf="@+id/guideline_text1"
+        app:layout_constraintEnd_toStartOf="@+id/guideline_heading"
+        app:layout_constraintTop_toTopOf="@+id/guideline_heading"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <TextView
+        android:id="@+id/skip"
+        android:layout_width="44dp"
+        android:layout_height="28dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="132dp"
+        android:layout_marginBottom="571dp"
+        android:gravity="top"
+        android:text="@string/skip"
+        android:textAppearance="@style/skip"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/guideline_heading"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/guideline_text1"
+        android:layout_width="299dp"
+        android:layout_height="58dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="56dp"
+        android:gravity="center_horizontal|top"
+        android:text="@string/guideline2_text1"
+        android:textAppearance="@style/guideline_text1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/guideline_heading" />
+
+    <ImageView
+        android:id="@+id/imageView1"
+        android:layout_width="334dp"
+        android:layout_height="273dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginEnd="39dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/guideline_text1"
+        app:srcCompat="@drawable/guideline2" />
+
+    <Button
+        android:id="@+id/button1"
+        android:layout_width="213dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="13dp"
+        android:layout_marginEnd="99dp"
+        android:backgroundTint="#F8B11B"
+        android:text="@string/guideline_button1"
+        android:textAppearance="@style/guideline_button1"
+        android:textColor="#000000"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageView1" />
+
+    <ImageView
+        android:id="@+id/ellipse_1"
+        android:layout_width="13dp"
+        android:layout_height="13dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="13dp"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintEnd_toStartOf="@+id/ellipse_2"
+        app:layout_constraintTop_toBottomOf="@+id/button1"
+        app:srcCompat="@drawable/ellipse_black" />
+
+    <ImageView
+        android:id="@+id/ellipse_2"
+        android:layout_width="13dp"
+        android:layout_height="13dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+
+        android:layout_marginTop="13dp"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintEnd_toStartOf="@+id/ellipse_3"
+        app:layout_constraintTop_toBottomOf="@+id/button1"
+        app:srcCompat="@drawable/ellipse_yellow" />
+
+    <ImageView
+        android:id="@+id/ellipse_3"
+        android:layout_width="13dp"
+        android:layout_height="13dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="13dp"
+        android:layout_marginEnd="178dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button1"
+        app:srcCompat="@drawable/ellipse_black" />
+</androidx.constraintlayout.widget.ConstraintLayout>

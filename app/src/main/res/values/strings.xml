@@ -1,0 +1,32 @@
+<resources>
+    <string name="app_name">FruitAlert</string>
+    <string name="fresh_fruit">Fresh Fruit For The Day </string>
+    <string name="sickness_go">
+        Sickness Go Away
+    </string>
+    <string name="background">background</string>
+
+    <string name="guideline_heading">FRUIT DETECTION GUIDELINE</string>
+    <string name="skip">SKIP</string>
+
+    <string name="guideline_text1">
+        Require Camera Permission
+    </string>
+
+    <string name="guideline_text2">
+        this allows the app to access your camera, so you can take the shot you want, but can\'t import images from gallery.
+    </string>
+
+    <string name="guideline_button1">Next</string>
+
+    <string name="guideline2_text1">
+        Please align the fruit in the center of the square
+    </string>
+
+    <string name="guideline3_text1">
+        After Taking Picture, Crop the Image, Then Press Okay
+    </string>
+
+    <string name="guideline3_button1">Finish</string>
+</resources>
+
