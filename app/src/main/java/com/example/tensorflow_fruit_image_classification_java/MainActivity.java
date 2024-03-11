@@ -22,13 +22,27 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.Toolbar;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContract;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.camera.core.AspectRatio;
+import androidx.camera.core.CameraSelector;
+import androidx.camera.core.ImageCapture;
+import androidx.camera.core.Preview;
+import androidx.camera.lifecycle.ProcessCameraProvider;
+import androidx.camera.view.PreviewView;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 
 import com.example.tensorflow_fruit_image_classification_java.ml.Detect;
 import com.example.tensorflow_fruit_image_classification_java.ml.MobilenetClassification;
+import com.google.common.util.concurrent.ListenableFuture;
 
 
 import org.tensorflow.lite.DataType;
@@ -39,6 +53,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
+import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -48,8 +63,7 @@ public class MainActivity extends AppCompatActivity {
     TextView result;
     //Compulsory 224x224 pixel for tensor input
     Bitmap bitmap2, bitmap;
-
-    int imageSize = 224;
+    int imageSize = 320;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,27 +75,79 @@ public class MainActivity extends AppCompatActivity {
         result = findViewById(R.id.result);
         imageView = findViewById(R.id.imageView);
 
+        if(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA)
+        != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{
+                    Manifest.permission.CAMERA
+            },100);
+        }
+
         camera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED){
-                    Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                    startActivityForResult(cameraIntent, 3);
-                }else{
-                    requestPermissions(new String[]{Manifest.permission.CAMERA}, 100);
-                }
+                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                cameraLauncher.launch(intent);
             }
         });
         gallery.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                    Intent cameraIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                    startActivityForResult(cameraIntent, 1);
+                Intent galleryIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                galleryLauncher.launch(galleryIntent);
             }
         });
         setSupportActionBar(findViewById(R.id.toolbar));
     }
 
+    private ActivityResultLauncher<Intent> cameraLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult result) {
+                    if(result.getResultCode() == RESULT_OK){
+                        // Permission of Camera result code received
+                        Intent data = result.getData();
+                        Bitmap image = (Bitmap) data.getExtras().get("data");
+                        int dimension = Math.min(image.getWidth(), image.getHeight());
+                        image = ThumbnailUtils.extractThumbnail(image, dimension, dimension);
+
+                        Bitmap displayImage = Bitmap.createScaledBitmap(image, 1000, 1000, false);
+                        imageView.setImageBitmap(displayImage);
+
+                        image = Bitmap.createScaledBitmap(image, imageSize, imageSize, false);
+                        detectImage(image);
+                    }
+                }
+            });
+
+    private ActivityResultLauncher<Intent> galleryLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult result) {
+                    if(result.getResultCode() == RESULT_OK){
+                        //Attempt to solve the bug
+                        Intent data = result.getData();
+                        Uri dat = data.getData(); //get intent data
+                        Bitmap image = null;
+                        if(dat != null){
+                            try {
+                                image = MediaStore.Images.Media.getBitmap(getContentResolver(), dat);
+                                Bitmap displayImage = Bitmap.createScaledBitmap(image, 1000, 1000, false);
+                                imageView.setImageBitmap(displayImage);
+                                Log.d("Image Info", "Width: " + image.getWidth() + ", Height: " + image.getHeight());
+                                Log.d("Image Info", "Width: " + displayImage.getWidth() + ", Height: " + displayImage.getHeight());
+                                imageSize = 320;
+                                image = Bitmap.createScaledBitmap(image, imageSize, imageSize, false);
+                                detectImage(image);
+                            }catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                    }
+                }
+            });
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -167,11 +233,11 @@ public class MainActivity extends AppCompatActivity {
             Detect model = Detect.newInstance(getApplicationContext());
             int imageSize = 320;
             // Creates inputs for reference.
-            TensorBuffer inputFeature0 = TensorBuffer.createFixedSize(new int[]{1, 320, 320, 3}, DataType.INT8);
+            TensorBuffer inputFeature0 = TensorBuffer.createFixedSize(new int[]{1, 320, 320, 3}, DataType.FLOAT32);
             TensorImage tensorImage = TensorImage.fromBitmap(image);
-            //ByteBuffer byteBuffer = ByteBuffer.allocateDirect(4 * imageSize * imageSize * 3);
-            ByteBuffer byteBuffer = tensorImage.getBuffer();
-            /*
+            ByteBuffer byteBuffer = ByteBuffer.allocateDirect(4 * imageSize * imageSize * 3);
+
+
             byteBuffer.order(ByteOrder.nativeOrder());
 
             int[] intValues = new int[imageSize * imageSize];
@@ -182,17 +248,16 @@ public class MainActivity extends AppCompatActivity {
                     // extract R,G,B by bitwise
                     // /1 because preprocessing scaled from 0 (fresh) to 1 (spoiled)
                     int val = intValues[pixel++];
-                    byteBuffer.putInt(val);
-                    //byteBuffer.putFloat(((val >> 16) & 0xFF) * (1.f/ 1));
-                    //byteBuffer.putFloat(((val >> 8) & 0xFF) * (1.f/ 1));
-                    //byteBuffer.putFloat((val & 0xFF) * (1.f/ 1));
+                    byteBuffer.putFloat( ((val >> 16) & 0xFF)/ 256.0f + (0.5f/256.0f));
+                    byteBuffer.putFloat( ((val >> 8) & 0xFF) /256.0f  + (0.5f/256.0f));
+                    byteBuffer.putFloat( (val & 0xFF) /256.0f  + (0.5f/256.0f));
                 }
             }
-            */
+
 
             inputFeature0.loadBuffer(byteBuffer);
             // Runs model inference and gets result.
-            /*
+
             Detect.Outputs outputs = model.process(inputFeature0);
             TensorBuffer outputFeature0 = outputs.getOutputFeature0AsTensorBuffer();
             TensorBuffer outputFeature1 = outputs.getOutputFeature1AsTensorBuffer();
@@ -200,15 +265,15 @@ public class MainActivity extends AppCompatActivity {
             TensorBuffer outputFeature3 = outputs.getOutputFeature3AsTensorBuffer();
 
             float[] confidences = outputFeature0.getFloatArray();
-            float[] output1 = outputFeature1.getFloatArray();
-            float[] output2 = outputFeature2.getFloatArray();
+            float[] boxes = outputFeature1.getFloatArray();
+            float[] len = outputFeature2.getFloatArray();
 
-            float[] output3 = outputFeature3.getFloatArray();
+            float[] classes = outputFeature3.getFloatArray();
 
             Log.d("confidences ", Arrays.toString(confidences) + "");
-            Log.d("boxes ", Arrays.toString(output1) + "");
-            Log.d("len ", Arrays.toString(output2) + "");
-            Log.d("classes ", Arrays.toString(output3) + "");
+            Log.d("boxes ", Arrays.toString(boxes) + "");
+            Log.d("len ", Arrays.toString(len) + "");
+            Log.d("classes ", Arrays.toString(classes) + "");
             Bitmap bitmapWithBoundingBoxes = image.copy(Bitmap.Config.ARGB_8888, true);
 
             // Create a canvas from the new bitmap
@@ -226,13 +291,13 @@ public class MainActivity extends AppCompatActivity {
             float scaleY = (float) imageHeight / modelInputSize;
             // Iterate through each bounding box
             for(int i = 0,j = 0; j < confidences.length; j++,i+=4) {
-                if(confidences[j] <= 0.95) continue;
+                if(confidences[j] <= 0.5) continue;
                 Log.d("curcon", confidences[j]+" ");
 
-                float ymin = output1[i] * modelInputSize * scaleY;
-                float xmin = output1[i + 1] * modelInputSize * scaleX;
-                float ymax = output1[i + 2] * modelInputSize * scaleY;
-                float xmax = output1[i + 3] * modelInputSize * scaleX;
+                float ymin = boxes[i] * modelInputSize * scaleY;
+                float xmin = boxes[i + 1] * modelInputSize * scaleX;
+                float ymax = boxes[i + 2] * modelInputSize * scaleY;
+                float xmax = boxes[i + 3] * modelInputSize * scaleX;
 
                 ymin = Math.max(1f,ymin);
                 xmin = Math.max(1f,xmin);
@@ -248,27 +313,44 @@ public class MainActivity extends AppCompatActivity {
                 canvas.drawRect(xmin, ymin, xmax, ymax, paint);
 
             }
+            imageView.setImageBitmap(Bitmap.createScaledBitmap(bitmapWithBoundingBoxes, 1000, 1000, true));
 
-            imageView.setImageBitmap(bitmapWithBoundingBoxes);
-//            /*
-//            int maxPos = 0;
-//            float maxConfidence = 0;
-//            for(int i = 0; i < confidences.length; i++){
-//                System.out.println(confidences[i] + " ");
-//                Log.d("tagString", (confidences[i] + " "));
-//                if(confidences[i] > maxConfidence){
-//                    maxConfidence = confidences[i];
-//                    maxPos = i;
-//                }
-//            }
-//            */
-//            String[] classes = {"fresh", "spoiled"};
-//            Log.d("confidences", (confidences[0] + " "));
-//            if (classes[Math.round(confidences[0])].equals("fresh")) {
-//                confidences[0] = 1 - confidences[0];
-//            }
-//            result.setText(classes[Math.round(confidences[0])] + "\nconfidences:" + (confidences[0] * 100 + ""));
+            //imageView.setImageBitmap(bitmapWithBoundingBoxes);
 
+            int maxPos = 0;
+            float maxConfidence = 0;
+            for(int i = 0; i < confidences.length; i++){
+                System.out.println(confidences[i] + " ");
+                Log.d("tagString", (confidences[i] + " "));
+                if(confidences[i] > maxConfidence){
+                    maxConfidence = confidences[i];
+                    maxPos = i;
+                }
+            }
+            //TODO (turn it to Void in future)
+            String[] classesLabel = {"fresh", "spoiled"};
+            Log.d("confidences", (confidences[0] + " "));
+            float confidence_per = confidences[0] * 100;
+            int freshCount = 0,rottenCount =0;
+            if(classesLabel[Math.round(classes[0])].equals("fresh")){
+                freshCount++;
+            }else{
+                rottenCount++;
+            }
+            String text = "";
+            if(rottenCount > 0 && freshCount > 0){
+                String.format("fresh: %d%nrotten: %d",freshCount,rottenCount);
+            }
+            else if(rottenCount > 0){
+                text += "rotten: " + rottenCount;
+            }
+            else if(freshCount > 0){
+                text += "fresh: " + freshCount;
+            }else{
+                text += "No fruit find";
+            }
+
+            result.setText(text);
 
             // Releases model resources if no longer used.
 
@@ -276,40 +358,6 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             // TODO Handle the exception
         }
-    }
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if(resultCode == RESULT_OK){
-            if(resultCode == 3){
-                // Permission of Camera result code received
-                Bitmap image = (Bitmap) data.getExtras().get("data");
-                int dimension = Math.min(image.getWidth(), image.getHeight());
-                image = ThumbnailUtils.extractThumbnail(image, dimension, dimension);
-
-                Bitmap displayImage = Bitmap.createScaledBitmap(image, 200, 200, true);
-                imageView.setImageBitmap(displayImage);
-                //image = Bitmap.createScaledBitmap(image, imageSize, imageSize, false);
-                classifyImage(image);
-            }else{
-                //Attempt to solve the bug
-
-                Uri dat = data.getData();
-                Bitmap image = null;
-                try {
-                    image = MediaStore.Images.Media.getBitmap(this.getContentResolver(), dat);
-                }catch (IOException e) {
-                    e.printStackTrace();
-                }
-                Bitmap displayImage = Bitmap.createScaledBitmap(image, 1000, 1000, false);
-                imageView.setImageBitmap(displayImage);
-                Log.d("Image Info", "Width: " + image.getWidth() + ", Height: " + image.getHeight());
-                Log.d("Image Info", "Width: " + displayImage.getWidth() + ", Height: " + displayImage.getHeight());
-                imageSize = 320;
-                image = Bitmap.createScaledBitmap(image, imageSize, imageSize, false);
-                classifyImage(image);
-            }
-        }
-        super.onActivityResult(requestCode, resultCode, data);
     }
 
 }
