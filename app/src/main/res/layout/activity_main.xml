@@ -36,7 +36,7 @@
         android:layout_above="@id/button2"
         android:layout_centerInParent="true"
         android:backgroundTint="#F8B11B"
-        android:text="Take Picture"
+        android:text="@string/take_picture"
         android:textAllCaps="false"
         android:textColor="#000000"
         android:textSize="21sp"
@@ -49,7 +49,7 @@
         android:layout_alignParentBottom="true"
         android:layout_centerInParent="true"
         android:backgroundTint="#F8B11B"
-        android:text="Launch Gallery"
+        android:text="@string/launch_gallery"
         android:textAllCaps="false"
         android:textColor="#000000"
         android:textSize="21sp"
@@ -62,12 +62,12 @@
         android:layout_marginTop="100sp"
         android:scaleType="center"
         android:background="@drawable/round_border"
-        />
+        android:contentDescription="@string/display_selected_image" />
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:text="Classified as:"
+        android:text="@string/classified_as"
         android:textStyle="bold"
         android:textSize="20sp"
         android:id="@+id/classified"
@@ -86,5 +86,19 @@
         android:id="@+id/result"
         android:layout_below="@+id/classified"
         />
+
+    <Button
+        android:id="@+id/button4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/button2"
+        android:layout_centerVertical="true"
+        android:layout_marginBottom="52dp"
+        android:backgroundTint="#F8B11B"
+        android:text="@string/live_camera"
+        android:textAllCaps="false"
+        android:textColor="#000000"
+        android:textSize="21sp"
+        android:textStyle="bold" />
 
 </RelativeLayout>

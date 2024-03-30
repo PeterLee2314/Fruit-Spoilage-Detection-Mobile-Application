@@ -1,7 +1,9 @@
 package com.example.tensorflow_fruit_image_classification_java;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -12,38 +14,33 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.PopupWindow;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.Toolbar;
 
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContract;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.camera.core.AspectRatio;
-import androidx.camera.core.CameraSelector;
-import androidx.camera.core.ImageCapture;
-import androidx.camera.core.Preview;
-import androidx.camera.lifecycle.ProcessCameraProvider;
-import androidx.camera.view.PreviewView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.content.res.ResourcesCompat;
 
 import com.example.tensorflow_fruit_image_classification_java.ml.Detect;
 import com.example.tensorflow_fruit_image_classification_java.ml.MobilenetClassification;
-import com.google.common.util.concurrent.ListenableFuture;
-
+import com.example.tensorflow_fruit_image_classification_java.ml.Mobilenetv3largeUnet;
 
 import org.tensorflow.lite.DataType;
 import org.tensorflow.lite.support.image.TensorImage;
@@ -53,25 +50,34 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
-import java.util.concurrent.ExecutionException;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-
-    Button camera, gallery, help;
+    Context context = this;
+    Button camera, gallery, help, liveCamera;
     ImageView imageView;
-
+    SharedPreferences preferences;
+    SharedPreferences.Editor editor;
+    String selected_mode;
     TextView result;
     //Compulsory 224x224 pixel for tensor input
     Bitmap bitmap2, bitmap;
     int imageSize = 320;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
+        if(selected_mode == null){
+            preferences = getSharedPreferences("user", Context.MODE_PRIVATE);
+            selected_mode = preferences.getString("user", "Classification");
+        }
+        //grab main content
         camera = findViewById(R.id.button);
         gallery = findViewById(R.id.button2);
-
+        liveCamera = findViewById(R.id.button4);
         result = findViewById(R.id.result);
         imageView = findViewById(R.id.imageView);
 
@@ -82,6 +88,12 @@ public class MainActivity extends AppCompatActivity {
             },100);
         }
 
+        liveCamera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                goToLiveCameraActivity(view);
+            }
+        });
         camera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -96,9 +108,86 @@ public class MainActivity extends AppCompatActivity {
                 galleryLauncher.launch(galleryIntent);
             }
         });
+
+        //Action and Setting grabbing
         setSupportActionBar(findViewById(R.id.toolbar));
+        //createPopUpSettingWindow();
+
+
+
+
     }
 
+    private void createPopUpSettingWindow() {
+        Log.d("MainActivity", selected_mode);
+        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        View popUpViews = inflater.inflate(R.layout.settingpopup, null);
+        int width = ViewGroup.LayoutParams.WRAP_CONTENT;
+        int height = ViewGroup.LayoutParams.WRAP_CONTENT;
+        boolean focusable = true;
+        final List<String> option = Arrays.asList("Classification","Image Segmentation", "Detection");
+        final Spinner spinner = popUpViews.findViewById(R.id.mode_spinner);
+        PopupWindow popupWindow = new PopupWindow(popUpViews,width,height,focusable);
+        imageView.post(new Runnable(){
+            @Override
+            public void run(){
+                popupWindow.showAtLocation(imageView, Gravity.TOP,0,200);
+            }
+        });
+
+        //Set state for setting popup
+        TextView resetBtn, saveBtn;
+        resetBtn = popUpViews.findViewById(R.id.reset_setting);
+        saveBtn = popUpViews.findViewById(R.id.save_setting);
+        resetBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                popupWindow.dismiss();
+            }
+        });
+        saveBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                preferences = getSharedPreferences("user", Context.MODE_PRIVATE);
+                editor=preferences.edit();
+                Spinner mySpinner = (Spinner) popUpViews.findViewById(R.id.mode_spinner);
+                String text = mySpinner.getSelectedItem().toString();
+                editor.putString("user", text);
+                editor.commit();
+                selected_mode = preferences.getString("user", "Classification");
+
+                popupWindow.dismiss();
+            }
+        });
+        //Touch non-setting  close
+        popUpViews.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                popupWindow.dismiss();
+                return true;
+            }
+        });
+
+        String AndroidVersion = android.os.Build.VERSION.RELEASE;
+        TextView apiVersion = popUpViews.findViewById(R.id.get_api);
+        apiVersion.setText(AndroidVersion);
+        TextView requiredVersion = popUpViews.findViewById(R.id.get_apk);
+        requiredVersion.setText("14");
+        //Set Spinner
+        ArrayAdapter adapter = new ArrayAdapter(getApplicationContext(), R.layout.mode_selected_item_layout, option);
+        adapter.setDropDownViewResource(R.layout.mode_selected_dropdown_layout);
+        spinner.setAdapter(adapter);
+
+        spinner.setSelection(adapter.getPosition(selected_mode));
+
+
+
+    }
+
+    private void goToLiveCameraActivity(View view){
+        Intent intent = new Intent(this, LiveCameraActivity.class);
+        view.getContext().startActivity(intent);
+    }
     private ActivityResultLauncher<Intent> cameraLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             new ActivityResultCallback<ActivityResult>() {
@@ -115,7 +204,23 @@ public class MainActivity extends AppCompatActivity {
                         imageView.setImageBitmap(displayImage);
 
                         image = Bitmap.createScaledBitmap(image, imageSize, imageSize, false);
-                        detectImage(image);
+
+                        switch(selected_mode){
+                            case "Classification":{
+                                classifyImage(image);
+                                break;
+                            }
+                            case "Image Segmentation":{
+                                segmentImage(image);
+                                break;
+                            }
+                            case "Detection":{
+                                detectImage(image);
+                                break;
+                            }
+                            default:break;
+                        }
+
                     }
                 }
             });
@@ -133,13 +238,31 @@ public class MainActivity extends AppCompatActivity {
                         if(dat != null){
                             try {
                                 image = MediaStore.Images.Media.getBitmap(getContentResolver(), dat);
-                                Bitmap displayImage = Bitmap.createScaledBitmap(image, 1000, 1000, false);
-                                imageView.setImageBitmap(displayImage);
-                                Log.d("Image Info", "Width: " + image.getWidth() + ", Height: " + image.getHeight());
-                                Log.d("Image Info", "Width: " + displayImage.getWidth() + ", Height: " + displayImage.getHeight());
-                                imageSize = 320;
-                                image = Bitmap.createScaledBitmap(image, imageSize, imageSize, false);
-                                detectImage(image);
+                                Bitmap originalMap = Bitmap.createScaledBitmap(image, 1000, 1000, false);
+                                imageView.setImageBitmap(originalMap);
+                                switch(selected_mode){
+                                    case "Classification":{
+                                        imageSize = 224;
+                                        image = Bitmap.createScaledBitmap(image, imageSize, imageSize, false);
+                                        classifyImage(image);
+                                        break;
+                                    }
+                                    case "Image Segmentation":{
+                                        imageSize = 224;
+                                        image = Bitmap.createScaledBitmap(image, imageSize, imageSize, false);
+                                        segmentImage(image);
+                                        break;
+
+                                    }
+                                    case "Detection":{
+                                        imageSize = 320;
+                                        image = Bitmap.createScaledBitmap(image, imageSize, imageSize, false);
+                                        detectImage(image);
+                                        break;
+                                    }
+                                    default:break;
+                                }
+
                             }catch (IOException e) {
                                 e.printStackTrace();
                             }
@@ -148,6 +271,19 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             });
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        //TODO show live camera footage
+        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            //TODO show live camera footage
+
+        } else {
+
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -159,13 +295,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if(item.getItemId() == R.id.guideline){
-            Toast.makeText(this, "Item 1 selected", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Back to Guideline", Toast.LENGTH_SHORT).show();
             Intent guidelineIntent = new Intent(this, GuidelineActivity.class);
             startActivity(guidelineIntent);
             return true;
         }
         else if(item.getItemId() == R.id.setting){
-            Toast.makeText(this, "Item 2 selected", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Open Setting", Toast.LENGTH_SHORT).show();
+            createPopUpSettingWindow();
             return true;
         }else{
             return super.onOptionsItemSelected(item);
@@ -173,6 +310,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
     public void classifyImage(Bitmap image){
+        Log.d("MainActivity", "Execute classifyImage");
         try {
             MobilenetClassification model = MobilenetClassification.newInstance(getApplicationContext());
             // Creates inputs for reference.
@@ -228,7 +366,61 @@ public class MainActivity extends AppCompatActivity {
             // TODO Handle the exception
         }
     }
+
+    public void segmentImage(Bitmap image){
+        Log.d("MainActivity", "Execute segmentImage");
+        try {
+            Mobilenetv3largeUnet model = Mobilenetv3largeUnet.newInstance(getApplicationContext());
+            // Creates inputs for reference.
+            int imageSize = 224;
+            TensorBuffer inputFeature0 = TensorBuffer.createFixedSize(new int[]{1, 224, 224, 3}, DataType.FLOAT32);
+            ByteBuffer byteBuffer = ByteBuffer.allocateDirect(4 * imageSize * imageSize * 3);
+            byteBuffer.order(ByteOrder.nativeOrder());
+
+            int[] intValues = new int[imageSize * imageSize];
+            image.getPixels(intValues, 0, image.getWidth(), 0, 0, image.getWidth(), image.getHeight());
+            int pixel = 0;
+            for(int i = 0; i < imageSize; i++){
+                for(int j = 0; j < imageSize; j++){
+                    int val = intValues[pixel++];
+                    // extract R,G,B by bitwise
+                    // /1 because preprocessing scaled from 0 (fresh) to 1 (spoiled)
+                    byteBuffer.putFloat(((val >> 16) & 0xFF) * (1.f/ 1));
+                    byteBuffer.putFloat(((val >> 8) & 0xFF) * (1.f/ 1));
+                    byteBuffer.putFloat((val & 0xFF) * (1.f/ 1));
+                }
+            }
+            inputFeature0.loadBuffer(byteBuffer);
+            // Runs model inference and gets result.
+            Mobilenetv3largeUnet.Outputs outputs = model.process(inputFeature0);
+            TensorBuffer outputFeature0 = outputs.getOutputFeature0AsTensorBuffer();
+            Log.d("MainActivity: outputFeature0",outputFeature0.getBuffer()+"");
+            int colorObject1 = Color.WHITE;
+            int colorObject2 = Color.BLACK;
+            Bitmap resultBitmap = Bitmap.createBitmap(imageSize, imageSize, Bitmap.Config.ARGB_8888);
+            float[] data=outputFeature0.getFloatArray();
+            Log.d("MainActivity: outputFeature0 data",data+"");
+            int index = 0;
+            for (int y = 0; y < 224; y++) {
+                for (int x = 0; x < 224; x++) {
+                    // Get the segmentation class (0 or 1)
+                    float class0Score = data[index++];
+                    float class1Score = data[index++];
+                    int classIndex = class0Score > class1Score ? 0 : 1;
+
+                    // Set pixel color based on class
+                    resultBitmap.setPixel(x, y, classIndex == 0 ? colorObject1 : colorObject2);
+                }
+            }
+
+            imageView.setImageBitmap(Bitmap.createScaledBitmap(resultBitmap, 1000, 1000, true));
+            model.close();
+        } catch (IOException e) {
+            // TODO Handle the exception
+        }
+    }
     public void detectImage(Bitmap image){
+        Log.d("MainActivity", "Execute detectImage");
         try {
             Detect model = Detect.newInstance(getApplicationContext());
             int imageSize = 320;

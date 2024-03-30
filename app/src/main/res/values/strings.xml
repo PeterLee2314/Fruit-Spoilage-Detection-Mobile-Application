@@ -24,9 +24,22 @@
     </string>
 
     <string name="guideline3_text1">
-        After Taking Picture, Crop the Image, Then Press Okay
+        After Taking Picture, Then Press Okay
     </string>
 
     <string name="guideline3_button1">Finish</string>
+    <string name="classified_as">Classified as:</string>
+    <string name="display_selected_image">Display Selected Image</string>
+    <string name="take_picture">Take Picture</string>
+    <string name="launch_gallery">Launch Gallery</string>
+    <string name="live_camera">Live Camera</string>
+    <string name="title_activity_live_camera">LiveCameraActivity</string>
+
+    <string name="setting">Settings</string>
+    <string-array name="mode_selection">
+        <item>Classification</item>
+        <item>Image Segmentation</item>
+        <item>Detection</item>
+    </string-array>
 </resources>
 
