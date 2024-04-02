@@ -25,6 +25,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.PopupWindow;
+import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -53,17 +54,20 @@ import java.util.Arrays;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    Context context = this;
-    Button camera, gallery, help, liveCamera;
-    ImageView imageView;
+    public static final String MODE_1 = "Classification";
+    public static final String MODE_2 = "Image Segmentation";
+    public static final String MODE_3 = "Detection";
+
+    Button camera, gallery, liveCamera;
+    ImageView imageView, imageViewCover;
     SharedPreferences preferences;
     SharedPreferences.Editor editor;
     String selected_mode;
-    TextView result;
+    TextView result, descriptionText;
     //Compulsory 224x224 pixel for tensor input
-    Bitmap bitmap2, bitmap;
+    Bitmap controlResultBitMap;
     int imageSize = 320;
-
+    private SeekBar seekBar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,15 +76,16 @@ public class MainActivity extends AppCompatActivity {
 
         if(selected_mode == null){
             preferences = getSharedPreferences("user", Context.MODE_PRIVATE);
-            selected_mode = preferences.getString("user", "Classification");
+            selected_mode = preferences.getString("user", MODE_1);
         }
         //grab main content
         camera = findViewById(R.id.button);
         gallery = findViewById(R.id.button2);
         liveCamera = findViewById(R.id.button4);
         result = findViewById(R.id.result);
+        descriptionText = findViewById(R.id.descriptionText);
         imageView = findViewById(R.id.imageView);
-
+        imageViewCover = findViewById(R.id.imageViewCover);
         if(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA)
         != PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(MainActivity.this, new String[]{
@@ -106,18 +111,73 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Intent galleryIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                 galleryLauncher.launch(galleryIntent);
+
+            }
+        });
+
+        //SeekBar
+        seekBar = findViewById(R.id.seekBar);
+        seekBar.setVisibility(View.INVISIBLE);
+
+
+
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                float opacity = (float) progress / 100;
+                // Set the opacity on the ImageView
+                imageViewCover.setAlpha(opacity);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
             }
         });
 
         //Action and Setting grabbing
         setSupportActionBar(findViewById(R.id.toolbar));
-        //createPopUpSettingWindow();
 
 
 
 
     }
+    private void checkModeFollowUp(){
+        switch(selected_mode){
+            case MODE_1:{
+                descriptionText.setText("Classified as");
+                result.setVisibility(View.VISIBLE);
+                break;
+            }
+            case MODE_2:{
+                descriptionText.setText("Opacity (0-100)");
+                seekBar.setVisibility(View.VISIBLE);
+                imageViewCover.setAlpha(0.4f);
+                break;
 
+            }
+            case MODE_3:{
+                descriptionText.setText("Detected fruits");
+                result.setVisibility(View.VISIBLE);
+                break;
+            }
+            default:break;
+        }
+        descriptionText.setVisibility(View.VISIBLE);
+    }
+
+    private void disabler(){
+        View[] list = new View[]{seekBar,result};
+        for(View i : list){
+            i.setVisibility(View.INVISIBLE);
+        }
+        imageViewCover.setImageDrawable(null);
+    }
     private void createPopUpSettingWindow() {
         Log.d("MainActivity", selected_mode);
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
@@ -125,7 +185,7 @@ public class MainActivity extends AppCompatActivity {
         int width = ViewGroup.LayoutParams.WRAP_CONTENT;
         int height = ViewGroup.LayoutParams.WRAP_CONTENT;
         boolean focusable = true;
-        final List<String> option = Arrays.asList("Classification","Image Segmentation", "Detection");
+        final List<String> option = Arrays.asList(MODE_1,MODE_2, MODE_3);
         final Spinner spinner = popUpViews.findViewById(R.id.mode_spinner);
         PopupWindow popupWindow = new PopupWindow(popUpViews,width,height,focusable);
         imageView.post(new Runnable(){
@@ -136,10 +196,10 @@ public class MainActivity extends AppCompatActivity {
         });
 
         //Set state for setting popup
-        TextView resetBtn, saveBtn;
-        resetBtn = popUpViews.findViewById(R.id.reset_setting);
+        TextView closeBtn, saveBtn;
+        closeBtn = popUpViews.findViewById(R.id.reset_setting);
         saveBtn = popUpViews.findViewById(R.id.save_setting);
-        resetBtn.setOnClickListener(new View.OnClickListener() {
+        closeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 popupWindow.dismiss();
@@ -159,7 +219,7 @@ public class MainActivity extends AppCompatActivity {
                 popupWindow.dismiss();
             }
         });
-        //Touch non-setting  close
+        //Touch close
         popUpViews.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -195,32 +255,36 @@ public class MainActivity extends AppCompatActivity {
                 public void onActivityResult(ActivityResult result) {
                     if(result.getResultCode() == RESULT_OK){
                         // Permission of Camera result code received
+                        disabler();
                         Intent data = result.getData();
                         Bitmap image = (Bitmap) data.getExtras().get("data");
                         int dimension = Math.min(image.getWidth(), image.getHeight());
                         image = ThumbnailUtils.extractThumbnail(image, dimension, dimension);
-
-                        Bitmap displayImage = Bitmap.createScaledBitmap(image, 1000, 1000, false);
-                        imageView.setImageBitmap(displayImage);
-
-                        image = Bitmap.createScaledBitmap(image, imageSize, imageSize, false);
-
+                        Bitmap originalMap = Bitmap.createScaledBitmap(image, 1000, 1000, false);
+                        imageView.setImageBitmap(originalMap);
                         switch(selected_mode){
-                            case "Classification":{
+                            case MODE_1:{
+                                imageSize = 224;
+                                image = Bitmap.createScaledBitmap(image, imageSize, imageSize, false);
                                 classifyImage(image);
                                 break;
                             }
-                            case "Image Segmentation":{
+                            case MODE_2:{
+                                imageSize = 224;
+                                image = Bitmap.createScaledBitmap(image, imageSize, imageSize, false);
                                 segmentImage(image);
                                 break;
+
                             }
-                            case "Detection":{
+                            case MODE_3:{
+                                imageSize = 320;
+                                image = Bitmap.createScaledBitmap(image, imageSize, imageSize, false);
                                 detectImage(image);
                                 break;
                             }
                             default:break;
                         }
-
+                        checkModeFollowUp();
                     }
                 }
             });
@@ -232,6 +296,7 @@ public class MainActivity extends AppCompatActivity {
                 public void onActivityResult(ActivityResult result) {
                     if(result.getResultCode() == RESULT_OK){
                         //Attempt to solve the bug
+                        disabler();
                         Intent data = result.getData();
                         Uri dat = data.getData(); //get intent data
                         Bitmap image = null;
@@ -241,20 +306,20 @@ public class MainActivity extends AppCompatActivity {
                                 Bitmap originalMap = Bitmap.createScaledBitmap(image, 1000, 1000, false);
                                 imageView.setImageBitmap(originalMap);
                                 switch(selected_mode){
-                                    case "Classification":{
+                                    case MODE_1:{
                                         imageSize = 224;
                                         image = Bitmap.createScaledBitmap(image, imageSize, imageSize, false);
                                         classifyImage(image);
                                         break;
                                     }
-                                    case "Image Segmentation":{
+                                    case MODE_2:{
                                         imageSize = 224;
                                         image = Bitmap.createScaledBitmap(image, imageSize, imageSize, false);
                                         segmentImage(image);
                                         break;
 
                                     }
-                                    case "Detection":{
+                                    case MODE_3:{
                                         imageSize = 320;
                                         image = Bitmap.createScaledBitmap(image, imageSize, imageSize, false);
                                         detectImage(image);
@@ -262,7 +327,7 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                     default:break;
                                 }
-
+                                checkModeFollowUp();
                             }catch (IOException e) {
                                 e.printStackTrace();
                             }
@@ -276,9 +341,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        //TODO show live camera footage
         if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            //TODO show live camera footage
 
         } else {
 
@@ -356,6 +419,7 @@ public class MainActivity extends AppCompatActivity {
             if(classes[Math.round(confidences[0])].equals("fresh")){
                 confidence_per = (1-confidences[0]) * 100;
             }
+
             result.setText(classes[Math.round(confidences[0])]
                     + "\nConfidence:" + (confidence_per+ "%"));
 
@@ -363,7 +427,6 @@ public class MainActivity extends AppCompatActivity {
             // Releases model resources if no longer used.
             model.close();
         } catch (IOException e) {
-            // TODO Handle the exception
         }
     }
 
@@ -412,8 +475,9 @@ public class MainActivity extends AppCompatActivity {
                     resultBitmap.setPixel(x, y, classIndex == 0 ? colorObject1 : colorObject2);
                 }
             }
-
-            imageView.setImageBitmap(Bitmap.createScaledBitmap(resultBitmap, 1000, 1000, true));
+            controlResultBitMap = Bitmap.createScaledBitmap(resultBitmap, 1000, 1000, true);
+            imageViewCover.setImageBitmap(controlResultBitMap);
+            seekBar.setVisibility(View.VISIBLE);
             model.close();
         } catch (IOException e) {
             // TODO Handle the exception
@@ -481,9 +545,15 @@ public class MainActivity extends AppCompatActivity {
             // Calculate the scaling factors to map the model's coordinates to the image's coordinates
             float scaleX = (float) imageWidth / modelInputSize;
             float scaleY = (float) imageHeight / modelInputSize;
+            int freshCount = 0,rottenCount =0;
             // Iterate through each bounding box
             for(int i = 0,j = 0; j < confidences.length; j++,i+=4) {
                 if(confidences[j] <= 0.5) continue;
+                if(classes[j] == 1.0f){
+                    rottenCount++;
+                }else{
+                    freshCount++;
+                }
                 Log.d("curcon", confidences[j]+" ");
 
                 float ymin = boxes[i] * modelInputSize * scaleY;
@@ -497,7 +567,11 @@ public class MainActivity extends AppCompatActivity {
                 xmax = Math.max(1f,xmax);
                 // Create a Paint object for drawing bounding boxes
                 Paint paint = new Paint();
-                paint.setColor(Color.RED);
+                if(classes[j] == 1){
+                    paint.setColor(Color.RED);
+                }else{
+                    paint.setColor(Color.GREEN);
+                }
                 paint.setStyle(Paint.Style.STROKE);
                 paint.setStrokeWidth(2.0f);
                 Log.d("draw", ymin+" "+xmin+" "+ymax+" "+xmax);
@@ -507,31 +581,9 @@ public class MainActivity extends AppCompatActivity {
             }
             imageView.setImageBitmap(Bitmap.createScaledBitmap(bitmapWithBoundingBoxes, 1000, 1000, true));
 
-            //imageView.setImageBitmap(bitmapWithBoundingBoxes);
-
-            int maxPos = 0;
-            float maxConfidence = 0;
-            for(int i = 0; i < confidences.length; i++){
-                System.out.println(confidences[i] + " ");
-                Log.d("tagString", (confidences[i] + " "));
-                if(confidences[i] > maxConfidence){
-                    maxConfidence = confidences[i];
-                    maxPos = i;
-                }
-            }
-            //TODO (turn it to Void in future)
-            String[] classesLabel = {"fresh", "spoiled"};
-            Log.d("confidences", (confidences[0] + " "));
-            float confidence_per = confidences[0] * 100;
-            int freshCount = 0,rottenCount =0;
-            if(classesLabel[Math.round(classes[0])].equals("fresh")){
-                freshCount++;
-            }else{
-                rottenCount++;
-            }
             String text = "";
             if(rottenCount > 0 && freshCount > 0){
-                String.format("fresh: %d%nrotten: %d",freshCount,rottenCount);
+                text += String.format("fresh: %d%nrotten: %d",freshCount,rottenCount);
             }
             else if(rottenCount > 0){
                 text += "rotten: " + rottenCount;
@@ -548,7 +600,6 @@ public class MainActivity extends AppCompatActivity {
 
             model.close();
         } catch (IOException e) {
-            // TODO Handle the exception
         }
     }
 
