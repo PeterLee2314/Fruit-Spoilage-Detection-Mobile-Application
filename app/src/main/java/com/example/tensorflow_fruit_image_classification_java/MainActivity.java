@@ -86,6 +86,8 @@ public class MainActivity extends AppCompatActivity {
         descriptionText = findViewById(R.id.descriptionText);
         imageView = findViewById(R.id.imageView);
         imageViewCover = findViewById(R.id.imageViewCover);
+        PackageManager packageManager = getPackageManager();
+        boolean hasCamera = packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA);
         if(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA)
         != PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(MainActivity.this, new String[]{
@@ -96,14 +98,32 @@ public class MainActivity extends AppCompatActivity {
         liveCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                goToLiveCameraActivity(view);
+                if (!hasCamera) {
+                    Toast.makeText(MainActivity.this, "No camera detected", Toast.LENGTH_SHORT).show();
+                    return;
+                }else{
+                    goToLiveCameraActivity(view);
+                }
             }
         });
         camera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                cameraLauncher.launch(intent);
+                try{
+                    if (!hasCamera) {
+                        Toast.makeText(MainActivity.this, "No camera detected", Toast.LENGTH_SHORT).show();
+
+                    }else{
+                        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                        cameraLauncher.launch(intent);
+                    }
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                    runOnUiThread(() -> Toast.makeText(MainActivity.this, "Error accessing the camera", Toast.LENGTH_SHORT).show());
+
+                }
+
             }
         });
         gallery.setOnClickListener(new View.OnClickListener() {
@@ -118,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
         //SeekBar
         seekBar = findViewById(R.id.seekBar);
         seekBar.setVisibility(View.INVISIBLE);
-
+        //imageViewCover.setAlpha(0f);
 
 
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -157,7 +177,9 @@ public class MainActivity extends AppCompatActivity {
             case MODE_2:{
                 descriptionText.setText("Opacity (0-100)");
                 seekBar.setVisibility(View.VISIBLE);
+                seekBar.setProgress(40);
                 imageViewCover.setAlpha(0.4f);
+
                 break;
 
             }
@@ -176,6 +198,7 @@ public class MainActivity extends AppCompatActivity {
         for(View i : list){
             i.setVisibility(View.INVISIBLE);
         }
+        imageViewCover.setAlpha(0f);
         imageViewCover.setImageDrawable(null);
     }
     private void createPopUpSettingWindow() {
@@ -232,7 +255,8 @@ public class MainActivity extends AppCompatActivity {
         TextView apiVersion = popUpViews.findViewById(R.id.get_api);
         apiVersion.setText(AndroidVersion);
         TextView requiredVersion = popUpViews.findViewById(R.id.get_apk);
-        requiredVersion.setText("14");
+        int androidVersion = BuildConfig.AndroidVersion;
+        requiredVersion.setText(androidVersion+"");
         //Set Spinner
         ArrayAdapter adapter = new ArrayAdapter(getApplicationContext(), R.layout.mode_selected_item_layout, option);
         adapter.setDropDownViewResource(R.layout.mode_selected_dropdown_layout);

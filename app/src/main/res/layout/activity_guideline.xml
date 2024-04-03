@@ -12,12 +12,15 @@
         android:id="@+id/imageView4"
         android:layout_width="234dp"
         android:layout_height="52dp"
+        android:layout_marginStart="88dp"
         android:layout_marginTop="49dp"
         android:layout_marginEnd="89dp"
         android:gravity="center"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/icon_transparent" />
+
 
     <TextView
         android:id="@+id/skip"
@@ -45,11 +48,13 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
+        android:layout_marginStart="70dp"
         android:layout_marginEnd="68dp"
         android:gravity="center|center_horizontal|top"
         android:text="@string/guideline_heading"
         android:textAppearance="@style/guideline_heading"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageView4" />
 
     <TextView
@@ -59,22 +64,26 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
 
+        android:layout_marginStart="58dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="58dp"
         android:gravity="center_horizontal|top"
         android:text="@string/guideline_text1"
         android:textAppearance="@style/guideline_text1"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/guideline_heading" />
 
     <ImageView
         android:id="@+id/imageView5"
         android:layout_width="310dp"
         android:layout_height="272dp"
+        android:layout_marginStart="53dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="48dp"
         android:gravity="center_horizontal|top"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/guideline_text1"
         app:srcCompat="@drawable/guideline1" />
 
@@ -84,17 +93,20 @@
         android:layout_height="33dp"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
+        android:layout_marginStart="51dp"
         android:layout_marginEnd="44dp"
         android:gravity="center_horizontal|top"
         android:text="@string/guideline_text2"
         android:textAppearance="@style/guideline_text2"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageView5" />
 
     <Button
         android:id="@+id/button3"
         android:layout_width="213dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="102dp"
         android:layout_marginEnd="96dp"
         android:backgroundTint="#F8B11B"
         android:text="@string/guideline_button1"
@@ -102,45 +114,57 @@
         android:textColor="#000000"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/guideline_text2" />
 
-    <ImageView
-        android:id="@+id/ellipse_2"
-        android:layout_width="13dp"
-        android:layout_height="13dp"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-
-        android:layout_marginTop="13dp"
-        android:layout_marginEnd="8dp"
-        app:layout_constraintEnd_toStartOf="@+id/ellipse_3"
-        app:layout_constraintTop_toBottomOf="@+id/button3"
-        app:srcCompat="@drawable/ellipse_black" />
-
-    <ImageView
-        android:id="@+id/ellipse_1"
-        android:layout_width="13dp"
-        android:layout_height="13dp"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="13dp"
-        android:layout_marginEnd="8dp"
-        app:layout_constraintEnd_toStartOf="@+id/ellipse_2"
-        app:layout_constraintTop_toBottomOf="@+id/button3"
-        app:srcCompat="@drawable/ellipse_yellow" />
-
-    <ImageView
-        android:id="@+id/ellipse_3"
-        android:layout_width="13dp"
-        android:layout_height="13dp"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="13dp"
-        android:layout_marginEnd="178dp"
+    <RelativeLayout
+        android:layout_width="60dp"
+        android:layout_height="30dp"
+        android:gravity="center_horizontal|top"
+        android:layout_marginTop="64dp"
+        android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button3"
-        app:srcCompat="@drawable/ellipse_black" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/button3">
 
+        <ImageView
+            android:id="@+id/ellipse_2"
+            android:layout_width="13dp"
+            android:layout_height="13dp"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginStart="199dp"
+            android:layout_marginTop="12dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:srcCompat="@drawable/ellipse_black" />
+
+        <ImageView
+            android:id="@+id/ellipse_1"
+            android:layout_width="13dp"
+            android:layout_height="13dp"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginStart="179dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:srcCompat="@drawable/ellipse_yellow" />
+
+        <ImageView
+            android:id="@+id/ellipse_3"
+            android:layout_width="13dp"
+            android:layout_height="13dp"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginStart="221dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="178dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:srcCompat="@drawable/ellipse_black" />
+    </RelativeLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 

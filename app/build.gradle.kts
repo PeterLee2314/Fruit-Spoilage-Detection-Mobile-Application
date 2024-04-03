@@ -8,6 +8,7 @@ android {
     compileSdk = 34
 
     defaultConfig {
+        buildConfigField("int", "AndroidVersion", "14")
         applicationId = "com.example.tensorflow_fruit_image_classification_java"
         minSdk = 30
         targetSdk = 34
@@ -36,6 +37,7 @@ android {
     buildFeatures {
         mlModelBinding = true
         compose = true
+        buildConfig = true
     }
     kotlinOptions {
         jvmTarget = "1.8"
