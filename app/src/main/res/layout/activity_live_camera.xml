@@ -39,6 +39,8 @@
         android:backgroundTint="#F8B11B"
         android:text="Start"
         android:textColor="#000000"
+        app:strokeColor="@color/black"
+        app:strokeWidth="2dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textureView" />
 
@@ -51,6 +53,8 @@
         android:backgroundTint="#F8B11B"
         android:text="Stop"
         android:textColor="#000000"
+        app:strokeColor="@color/black"
+        app:strokeWidth="2dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textureView"
         tools:layout_editor_absoluteY="618dp" />
@@ -64,6 +68,8 @@
         android:backgroundTint="#F8B11B"
         android:text="Back"
         android:textColor="#000000"
+        app:strokeColor="@color/black"
+        app:strokeWidth="2dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textureView" />
 </androidx.constraintlayout.widget.ConstraintLayout>

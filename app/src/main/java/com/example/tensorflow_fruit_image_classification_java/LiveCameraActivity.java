@@ -6,12 +6,12 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
+import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.params.OutputConfiguration;
 import android.hardware.camera2.params.SessionConfiguration;
@@ -305,12 +305,12 @@ public class LiveCameraActivity extends AppCompatActivity {
                         @Override
                         public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
                             myCameraCaptureSession = cameraCaptureSession;
-                            captureRequestBuilder.set(CaptureRequest.SCALER_CROP_REGION, new Rect(0, 0, textureViewWidth, textureViewHeight));
-                            /*
+                            //captureRequestBuilder.set(CaptureRequest.SCALER_CROP_REGION, new Rect(0, 0, textureViewWidth, textureViewHeight));
+
                             captureRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE,
                                     CameraMetadata.CONTROL_MODE_AUTO);
 
-                             */
+
                             try {
                                 myCameraCaptureSession.setRepeatingRequest(captureRequestBuilder.build(), null, null);
                             } catch (CameraAccessException e) {

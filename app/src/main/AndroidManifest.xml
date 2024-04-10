@@ -33,9 +33,6 @@
             android:name=".GuidelineActivity2"
             android:exported="false" />
         <activity
-            android:name=".ImageClassifierHelper"
-            android:exported="false" />
-        <activity
             android:name=".GuidelineActivity"
             android:exported="false" />
         <activity

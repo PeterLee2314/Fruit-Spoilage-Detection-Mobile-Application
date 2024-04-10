@@ -40,7 +40,9 @@
         android:textAllCaps="false"
         android:textColor="#000000"
         android:textSize="21sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        app:strokeColor="@color/black"
+        app:strokeWidth="2dp" />
 
     <Button
         android:id="@+id/button2"
@@ -53,7 +55,9 @@
         android:textAllCaps="false"
         android:textColor="#000000"
         android:textSize="21sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        app:strokeColor="@color/black"
+        app:strokeWidth="2dp" />
     <ImageView
         android:layout_width="370sp"
         android:layout_height="370sp"
@@ -127,6 +131,8 @@
         android:textAllCaps="false"
         android:textColor="#000000"
         android:textSize="21sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        app:strokeColor="@color/black"
+        app:strokeWidth="2dp" />
 
 </RelativeLayout>

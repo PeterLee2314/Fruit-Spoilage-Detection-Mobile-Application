@@ -113,6 +113,8 @@
         android:textAppearance="@style/guideline_button1"
         android:textColor="#000000"
         android:textStyle="bold"
+        app:strokeColor="@color/black"
+        app:strokeWidth="2dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/guideline_text2" />

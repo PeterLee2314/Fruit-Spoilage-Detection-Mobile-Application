@@ -8,6 +8,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
@@ -272,6 +273,24 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, LiveCameraActivity.class);
         view.getContext().startActivity(intent);
     }
+    public static Bitmap scaleBitmap(Bitmap bitmap, int newWidth, int newHeight) {
+        Bitmap scaledBitmap = Bitmap.createBitmap(newWidth, newHeight, Bitmap.Config.ARGB_8888);
+
+        float scaleX = newWidth / (float) bitmap.getWidth();
+        float scaleY = newHeight / (float) bitmap.getHeight();
+        float pivotX = 0;
+        float pivotY = 0;
+
+        Matrix scaleMatrix = new Matrix();
+        scaleMatrix.setScale(scaleX, scaleY, pivotX, pivotY);
+
+        Canvas canvas = new Canvas(scaledBitmap);
+        canvas.setMatrix(scaleMatrix);
+        canvas.drawBitmap(bitmap, 0, 0, new Paint(Paint.FILTER_BITMAP_FLAG));
+
+        return scaledBitmap;
+    }
+
     private ActivityResultLauncher<Intent> cameraLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             new ActivityResultCallback<ActivityResult>() {
@@ -284,7 +303,7 @@ public class MainActivity extends AppCompatActivity {
                         Bitmap image = (Bitmap) data.getExtras().get("data");
                         int dimension = Math.min(image.getWidth(), image.getHeight());
                         image = ThumbnailUtils.extractThumbnail(image, dimension, dimension);
-                        Bitmap originalMap = Bitmap.createScaledBitmap(image, 1000, 1000, false);
+                        Bitmap originalMap = scaleBitmap(image, 1000, 1000);
                         imageView.setImageBitmap(originalMap);
                         switch(selected_mode){
                             case MODE_1:{
@@ -327,7 +346,7 @@ public class MainActivity extends AppCompatActivity {
                         if(dat != null){
                             try {
                                 image = MediaStore.Images.Media.getBitmap(getContentResolver(), dat);
-                                Bitmap originalMap = Bitmap.createScaledBitmap(image, 1000, 1000, false);
+                                Bitmap originalMap = scaleBitmap(image, 1000, 1000);
                                 imageView.setImageBitmap(originalMap);
                                 switch(selected_mode){
                                     case MODE_1:{
